@@ -1,5 +1,6 @@
 package com.example.food.service;
 
+import com.example.food.dto.UserDTO;
 import com.example.food.entity.UserEntity;
 import com.example.food.gender.ActivityLevel;
 import com.example.food.gender.Gender;

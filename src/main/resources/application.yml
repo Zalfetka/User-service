@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: food
+
+  datasource:
+      url: jdbc:postgresql://localhost:5432/foodusers
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: food-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.example.food.dto.UserDTO
+    listener:
+      ack-mode: manual
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: false
+        max-age: 30m
+      tracking-modes: cookie
+
+jwt:
+  secret: myVerySecretKeyThatIsAtLeast32CharactersLong12345
+  expiration-ms: 86400000
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+    doc-expansion: none
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+
+logging:
+  level:
+    com.example.food: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+    org.springframework.kafka: DEBUG
+    org.apache.kafka: DEBUG
+    org.apache.kafka.clients: DEBUG

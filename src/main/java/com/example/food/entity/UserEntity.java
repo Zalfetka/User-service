@@ -3,9 +3,11 @@ package com.example.food.entity;
 
 import com.example.food.gender.ActivityLevel;
 import com.example.food.gender.Gender;
+import com.example.food.gender.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +18,6 @@ import java.util.List;
 @Entity
 @Table(name = "user1")
 @AllArgsConstructor
-@ToString(exclude = {"dailyCalories", "password"})
 public class UserEntity implements UserDetails {
 
     @Id
@@ -38,33 +39,54 @@ public class UserEntity implements UserDetails {
     private Float height;
     @Column
     private Integer age;
-    @OneToMany (cascade = CascadeType.ALL, mappedBy = "user")
-    private List <DailyCalories> dailyCalories;
+    @Enumerated(EnumType.STRING)
+    @Column
+    @Builder.Default
+    private Role role = Role.USER;
+    @Column
+    private Double caloriesNorm;
+    @Column
+    private Double proteinNorm;
+    @Column
+    private Double fatNorm;
+    @Column
+    private Double carbsNorm;
 
-    @NonNull
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", gender=" + gender +
+                ", weight=" + weight +
+                ", height=" + height +
+                ", age=" + age +
+                ", role=" + role +
+                '}';
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return UserDetails.super.isAccountNonExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return UserDetails.super.isCredentialsNonExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
 }
-

@@ -13,7 +13,12 @@ CREATE TABLE user1 (
                 height INTEGER NOT NULL,
                 age SMALLINT NOT NULL,
                 gender VARCHAR(64) NOT NULL,
-                activity VARCHAR(64) NOT NULL
+                activity VARCHAR(64) NOT NULL,
+                role VARCHAR(64) NOT NULL,
+                caloriesNorm INTEGER NOT NULL,
+                proteinNorm DECIMAL NOT NULL,
+                carbsNorm DECIMAL NOT NULL,
+                fatNorm DECIMAL NOT NULL
 );
 
 CREATE TABLE food (
@@ -26,4 +31,12 @@ CREATE TABLE food (
                 carbsNorm DECIMAL NOT NULL,
                 fatNorm DECIMAL NOT NULL
 
+);
+
+CREATE TABLE kafka_message_log (
+                id BIGSERIAL PRIMARY KEY,
+                payload TEXT NOT NULL,
+                status VARCHAR NOT NULL,
+                sent_at TIMESTAMP NOT NULL,
+                updated_at TIMESTAMP NOT NULL
 );

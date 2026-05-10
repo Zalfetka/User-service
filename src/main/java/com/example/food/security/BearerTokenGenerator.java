@@ -1,17 +1,14 @@
 package com.example.food.security;
 
+import com.example.food.entity.UserEntity;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -26,29 +23,21 @@ public class BearerTokenGenerator {
 
     private SecretKey signingKey;
 
-    public String generateToken(String username, Long userId) {
+    public String generateToken(UserEntity user, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
-        claims.put("username", username);
+        claims.put("username", user.getUsername());
         claims.put("generatedAt", System.currentTimeMillis());
+        claims.put("roles", List.of(user.getRole().name()));
 
         return Jwts.builder()
                 .claims(claims)
-                .subject(username)
+                .subject(user.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(getSigningKey())
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
-
-    public String generateToken(UserDetails userDetails, Long userId) {
-        return generateToken(userDetails.getUsername(), userId);
-    }
-
-    public String generateToken(String username) {
-        return generateToken(username, null);
-    }
-
 
     public Long extractUserId(String token) {
         try {
@@ -58,7 +47,6 @@ public class BearerTokenGenerator {
             return null;
         }
     }
-
 
     public String extractUsername(String token) {
         try {
@@ -98,19 +86,18 @@ public class BearerTokenGenerator {
         }
 
         if (jwtSecret == null || jwtSecret.isBlank()) {
-            signingKey = Jwts.SIG.HS256.key().build();
-            jwtSecret = Base64.getEncoder().encodeToString(signingKey.getEncoded());
-            log.info("Generated new JWT secret");
-            return signingKey;
+            throw new IllegalStateException("jwt.secret is not configured");
         }
 
         try {
-            byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
-            signingKey = Keys.hmacShaKeyFor(keyBytes);
-        } catch (IllegalArgumentException e) {
-            signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        }
+            byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(jwtSecret);
+            signingKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(keyBytes);
 
+        } catch (IllegalArgumentException e) {
+            signingKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                    jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+            );
+        }
         return signingKey;
     }
 
@@ -148,5 +135,4 @@ public class BearerTokenGenerator {
         }
         return false;
     }
-
 }

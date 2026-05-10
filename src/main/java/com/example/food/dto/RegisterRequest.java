@@ -2,6 +2,7 @@ package com.example.food.dto;
 
 import com.example.food.gender.ActivityLevel;
 import com.example.food.gender.Gender;
+import com.example.food.gender.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
@@ -19,4 +20,5 @@ public class RegisterRequest {
     private Float weight;
     private Float height;
     private ActivityLevel activity;
+    private Role role;
 }

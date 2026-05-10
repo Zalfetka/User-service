@@ -25,8 +25,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/token")
-    public ResponseEntity<?> generateBearerToken(@RequestBody UserEntity user) {
-        String token = bearerTokenGenerator.generateToken(user.getUsername());
+    public ResponseEntity<?> generateBearerToken(@RequestBody UserEntity user, Long userId) {
+        String token = bearerTokenGenerator.generateToken(user, userId);
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("tokenType", "Bearer");

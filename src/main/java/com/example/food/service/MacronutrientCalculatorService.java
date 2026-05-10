@@ -1,11 +1,8 @@
 package com.example.food.service;
 
 import com.example.food.dto.PFC;
-import com.example.food.entity.DailyCalories;
 import com.example.food.entity.UserEntity;
-import com.example.food.exception.UserAlreadyExistException;
 import com.example.food.exception.UserNotFoundException;
-import com.example.food.repository.CalorieRepo;
 import com.example.food.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -13,17 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class MacronutrientCalculatorService {
 
-    private final UserRepo userRepo;
-    private final CalorieRepo caloriesRepo;
     private final CalorieCalculatorService calorieCalculatorService;
+    private final UserRepo userRepo;
 
     private static final double PROTEIN_CAL = 4.0;
     private static final double FAT_CAL = 9.0;
@@ -33,7 +27,11 @@ public class MacronutrientCalculatorService {
     public PFC calculateMacronutrients(Long userId) {
 
         UserEntity user = userRepo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        if (user == null) {
+            throw new RuntimeException("User not found in cache (Kafka not received yet)");
+        }
 
         LocalDate today = LocalDate.now();
 
@@ -41,24 +39,17 @@ public class MacronutrientCalculatorService {
 
         PFC pfc = calculateFromCalories(dailyNorm);
 
-        DailyCalories record = caloriesRepo.findByUserAndDate(user, today)
-                .orElseGet(() -> DailyCalories.builder()
-                        .user(user)
-                        .date(today)
-                        .consumedCalories(0.0)
+        UserEntity record = userRepo.findById(userId)
+                .orElseGet(() -> UserEntity.builder()
+                        .id(userId)
                         .build());
 
-        record.setDailyNorm(dailyNorm);
-        record.setRemainingCalorie(dailyNorm);
-
+        record.setCaloriesNorm(dailyNorm);
         record.setProteinNorm(pfc.getProteins());
         record.setFatNorm(pfc.getFats());
         record.setCarbsNorm(pfc.getCarbs());
-
-        caloriesRepo.save(record);
-
+        userRepo.save(record);
         log.info("Daily nutrition calculated for user {} on {}", userId, today);
-
         return pfc;
     }
 

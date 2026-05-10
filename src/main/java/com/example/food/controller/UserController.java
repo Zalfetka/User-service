@@ -1,7 +1,7 @@
 package com.example.food.controller;
 
+import com.example.food.dto.RegisterRequest;
 import com.example.food.dto.UserResponse;
-import com.example.food.dto.UserUpdateRequest;
 import com.example.food.exception.UserNotFoundException;
 import com.example.food.security.CheckOwnership;
 import com.example.food.service.AuthService;
@@ -9,6 +9,7 @@ import com.example.food.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
@@ -19,6 +20,7 @@ public class UserController {
     private final UserService userService;
     private final AuthService authService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<?> getOneUser (@RequestParam Long id) {
         try {
@@ -30,6 +32,7 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity <?> deleteUser (@PathVariable Long id) {
         try {
@@ -42,7 +45,7 @@ public class UserController {
     @CheckOwnership
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponse updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+    public UserResponse updateUser(@PathVariable Long id, @RequestBody RegisterRequest request) {
         return authService.updateUser(id, request);
     }
 }
