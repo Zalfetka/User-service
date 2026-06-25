@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:18
     container_name: postgres
     environment:
       POSTGRES_DB: foodusers
@@ -36,9 +36,7 @@ services:
       - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -50,6 +48,129 @@ services:
       - food-network
     restart: unless-stopped
 
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: foodcounter
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - food-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - food-network
+    restart: unless-stopped
+
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.19
+#    container_name: elasticsearch
+#    environment:
+#      - discovery.type=single-node
+#      - xpack.security.enabled=false
+#      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+#    ports:
+#      - "9200:9200"
+#    networks:
+#      - food-network
+#    healthcheck:
+#      test: [ "CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1" ]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 40
+#      start_period: 20s
+
+#  zeebe:
+#    image: camunda/zeebe:8.5.0
+#    container_name: zeebe
+#    ports:
+#      - "26500:26500"
+#      - "9600:9600"
+#    environment:
+#      ZEEBE_BROKER_NETWORK_HOST: 0.0.0.0
+#      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME: io.camunda.zeebe.exporter.ElasticsearchExporter
+#      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL: http://elasticsearch:9200
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#    networks:
+#      - food-network
+#    healthcheck:
+#      test: [ "CMD-SHELL", "timeout 2 bash -c '</dev/tcp/127.0.0.1/26500'" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 20
+#      start_period: 60s
+#
+#
+#  operate:
+#    image: camunda/operate:8.5.0
+#    container_name: operate
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#      zeebe:
+#        condition: service_healthy
+#    environment:
+#      - CAMUNDA_OPERATE_ELASTICSEARCH_URL=http://elasticsearch:9200
+#      - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
+#      - CAMUNDA_OPERATE_ZEEBE_ELASTICSEARCH_URL=http://elasticsearch:9200
+#      - SPRING_PROFILES_ACTIVE=identity-auth
+#    ports:
+#      - "8090:8080"
+#    networks:
+#      - food-network
+#    restart: unless-stopped
+#
+#  tasklist:
+#    image: camunda/tasklist:8.5.0
+#    container_name: tasklist
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#      zeebe:
+#        condition: service_healthy
+#    environment:
+#      - CAMUNDA_TASKLIST_ELASTICSEARCH_URL=http://elasticsearch:9200
+#      - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
+#      - SPRING_PROFILES_ACTIVE=identity-auth
+#    ports:
+#      - "8088:8080"
+#    networks:
+#      - food-network
+#    restart: unless-stopped
+#
+#  optimize:
+#    image: camunda/optimize:8.5.0
+#    container_name: optimize
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#    environment:
+#      - CAMUNDA_OPTIMIZE_ELASTICSEARCH_HOST=elasticsearch
+#    ports:
+#      - "8089:8080"
+#    networks:
+#      - food-network
+#    restart: unless-stopped
+
 networks:
   food-network:
     driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:

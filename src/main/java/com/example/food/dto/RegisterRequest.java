@@ -6,9 +6,11 @@ import com.example.food.gender.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class RegisterRequest {
 

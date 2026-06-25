@@ -2,6 +2,10 @@ spring:
   application:
     name: food
 
+  data:
+    mongodb:
+      url: mongodb://localhost:27017/userBase
+
   datasource:
       url: jdbc:postgresql://localhost:5432/foodusers
       username: postgres
@@ -71,3 +75,12 @@ logging:
     org.springframework.kafka: DEBUG
     org.apache.kafka: DEBUG
     org.apache.kafka.clients: DEBUG
+
+camunda:
+  bpm:
+    database:
+      type: h2
+    auto-deployment-enabled: true
+    admin-user:
+      id: admin
+      password: admin

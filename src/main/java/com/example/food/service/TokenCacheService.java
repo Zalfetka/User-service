@@ -26,7 +26,6 @@ public class TokenCacheService {
     public String getOrCreateToken(String username, Long userId) {
         UserEntity user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         String cacheKey = username + ":" + userId;
 
         if (tokenCache.containsKey(cacheKey)) {
@@ -46,11 +45,9 @@ public class TokenCacheService {
             tokenCache.remove(cacheKey);
             log.debug("Removed invalid cached token for user: {} (ID: {})", username, userId);
         }
-
         String newToken = bearerTokenGenerator.generateToken(user, userId);
         tokenCache.put(cacheKey, new TokenInfo(newToken, userId, LocalDate.now()));
         log.info("Generated new token for user: {} (ID: {})", username, userId);
-
         return newToken;
     }
 }

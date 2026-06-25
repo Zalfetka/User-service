@@ -27,7 +27,6 @@ public class UserEntity implements UserDetails {
     private String username;
     @Column
     private String password;
-    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
     @Enumerated(EnumType.STRING)

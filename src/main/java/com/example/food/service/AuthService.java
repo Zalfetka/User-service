@@ -9,6 +9,7 @@ import com.example.food.gender.Role;
 import com.example.food.gender.Status;
 import com.example.food.mapper.UserMapper;
 import com.example.food.repository.KafkaMessageLogRepository;
+import com.example.food.repository.MongoRepo;
 import com.example.food.repository.UserRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
@@ -42,13 +43,21 @@ public class AuthService {
     private final ObjectMapper objectMapper;
     private final MacronutrientCalculatorService macronutrientCalculatorService;
     private final CalorieCalculatorService calorieCalculatorService;
+    private final MongoRepo mongoRepo;
 
     private AuthResponse generaleAuthResponse(String username, Long userId) {
         UserEntity user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
         String token = tokenCacheService.getOrCreateToken(username, userId);
-
+        DailyCaloriesMongo mongoDoc = new DailyCaloriesMongo();
+        mongoDoc.setId(UUID.randomUUID().toString());
+        mongoDoc.setUserId(userId);
+        mongoDoc.setUsername(username);
+        mongoDoc.setToken(token);
+        mongoDoc.setRole(Role.USER);
+        mongoDoc.setDate(LocalDate.now());
+        mongoRepo.save(mongoDoc);
         return AuthResponse.builder()
                 .token(token)
                 .username(username)
